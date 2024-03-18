@@ -30,10 +30,10 @@ class PostDetailView(DetailView):
     def get_object(self, queryset=None):
         post = super().get_object()
         if self.request.user != post.author:
-            if (not post.is_published or
-                    not post.category.is_published or
-                    not post.pub_date <= timezone.now()):
-                raise Http404('Page not found!')
+            if (not post.is_published
+                    or not post.category.is_published
+                    or not post.pub_date <= timezone.now()):
+                raise Http404('Страница не найдена!')
         return post
 
     def get_context_data(self, **kwargs):

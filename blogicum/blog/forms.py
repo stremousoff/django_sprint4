@@ -3,7 +3,6 @@ from django import forms
 
 
 class PostForm(forms.ModelForm):
-    """Форма публикации."""
     class Meta:
         model = Post
         fields = ('title', 'text', 'category', 'location', 'pub_date', 'image')

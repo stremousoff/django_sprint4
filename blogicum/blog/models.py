@@ -2,7 +2,6 @@ from blog.constants import LENGTH_STRING, MAX_LENGTH
 from core.models import IsPublishedCreatedAt
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.urls import reverse
 from django.utils import timezone
 
 User = get_user_model()  # получение модели пользователя
