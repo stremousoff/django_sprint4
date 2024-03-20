@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
-from .constants import LENGTH_STRING_ADMIN
-from .models import Category, Location, Post
+from .constants import LENGTH_STRING_ADMIN, NUMBER_OF_POSTS
+from .models import Category, Comment, Location, Post
 
 
 @admin.register(Post)
@@ -15,6 +16,7 @@ class PostAdmin(admin.ModelAdmin):
         'category',
         'pub_date',
         'is_published',
+        'image_display',
     )
     list_editable = (
         'location',
@@ -27,7 +29,16 @@ class PostAdmin(admin.ModelAdmin):
         'text',
         'location',
     )
-    list_per_page = 10
+    list_per_page = NUMBER_OF_POSTS
+
+    @staticmethod
+    @admin.display(description='Картинка')
+    def image_display(self, obj):
+        if obj.image:
+            return mark_safe(
+                f'<img src={obj.image.url} width="80" height="60">'
+            )
+
 
     @staticmethod
     @admin.display(description='Текст')
@@ -54,7 +65,7 @@ class CategoryAdmin(admin.ModelAdmin):
         'title',
         'description',
     )
-    list_per_page = 10
+    list_per_page = NUMBER_OF_POSTS
 
     @staticmethod
     @admin.display(description='Описание')
@@ -74,4 +85,18 @@ class LocationAdmin(admin.ModelAdmin):
     )
     list_editable = ('is_published',)
     list_filter = ('name',)
-    list_per_page = 10
+    list_per_page = NUMBER_OF_POSTS
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    """Кастомизация админки для модели Comment."""
+
+    list_display = (
+        'text',
+        'post',
+        'author',
+        'created_at',
+    )
+    list_filter = ('text',)
+    list_per_page = NUMBER_OF_POSTS

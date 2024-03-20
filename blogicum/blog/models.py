@@ -1,8 +1,10 @@
-from blog.constants import LENGTH_STRING, MAX_LENGTH
-from core.models import IsPublishedCreatedAt
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Count
 from django.utils import timezone
+
+from core.models import CreatedAt, IsPublished
+from blog.constants import LENGTH_STRING, MAX_LENGTH
 
 User = get_user_model()  # получение модели пользователя
 
@@ -10,7 +12,7 @@ User = get_user_model()  # получение модели пользовате�
 class PublishedQuerySet(models.QuerySet):
     """Менеджер публикации."""
 
-    def published(self):
+    def filter_posts_for_users(self):
         return self.select_related(
             'category',
             'location',
@@ -18,11 +20,16 @@ class PublishedQuerySet(models.QuerySet):
         ).filter(
             pub_date__lte=timezone.now(),
             is_published=True,
-            category__is_published=True
-        )
+            category__is_published=True,
+        ).annotate(comment_count=Count('comments')).order_by('-pub_date')
+
+    def filter_posts_for_author(self, author):
+        return self.select_related('category', 'location', 'author').filter(
+            author__username=author).annotate(comment_count=Count('comments')
+                                              ).order_by('-pub_date')
 
 
-class Category(IsPublishedCreatedAt):
+class Category(CreatedAt, IsPublished):
     """Модель категории."""
 
     title = models.CharField('Заголовок', max_length=MAX_LENGTH)
@@ -42,7 +49,7 @@ class Category(IsPublishedCreatedAt):
         return self.title[:LENGTH_STRING]
 
 
-class Location(IsPublishedCreatedAt):
+class Location(CreatedAt, IsPublished):
     """Модель местоположения."""
 
     name = models.CharField('Название места', max_length=MAX_LENGTH)
@@ -55,7 +62,7 @@ class Location(IsPublishedCreatedAt):
         return self.name[:LENGTH_STRING]
 
 
-class Post(IsPublishedCreatedAt):
+class Post(CreatedAt, IsPublished):
     """Модель поста."""
 
     title = models.CharField('Заголовок', max_length=MAX_LENGTH)
@@ -101,7 +108,7 @@ class Post(IsPublishedCreatedAt):
         return self.title[:LENGTH_STRING]
 
 
-class Comment(models.Model):
+class Comment(CreatedAt):
     """Модель комментария."""
 
     text = models.TextField('Текст')
@@ -124,6 +131,8 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ('created_at',)
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.text[:LENGTH_STRING]
