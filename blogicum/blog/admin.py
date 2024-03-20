@@ -39,7 +39,6 @@ class PostAdmin(admin.ModelAdmin):
                 f'<img src={obj.image.url} width="80" height="60">'
             )
 
-
     @staticmethod
     @admin.display(description='Текст')
     def text_short(obj: Post) -> str:
