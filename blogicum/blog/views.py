@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -34,6 +35,11 @@ class PostDetailView(ListView):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
         context['post'] = self.get_object()
+        comments = self.get_object().comments.order_by('created_at')
+        paginator = Paginator(comments, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
         return context
 
 
@@ -61,6 +67,12 @@ class PostDeleteView(DeleteMixin):
     model = Post
     template_name = 'blog/create.html'
     pk_url_kwarg = 'post_id'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post_instance = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        context['form'] = PostForm(instance=post_instance)
+        return context
 
     def get_success_url(self):
         return reverse('blog:index')
