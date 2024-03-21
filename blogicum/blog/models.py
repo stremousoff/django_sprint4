@@ -124,10 +124,6 @@ class Comment(CreatedAt):
         verbose_name='Автор комментария',
         related_name='comments'
     )
-    created_at = models.DateTimeField(
-        'Дата и время создания',
-        auto_now_add=True
-    )
 
     class Meta:
         ordering = ('created_at',)
