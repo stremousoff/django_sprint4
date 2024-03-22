@@ -29,9 +29,6 @@ class PostDetailView(ListView):
         return get_object_or_404(Post.objects.filter_posts_for_publication(),
                                  pk=self.kwargs['post_id'])
 
-    def get_queryset(self):
-        return self.get_object().comments.all()
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
@@ -70,13 +67,11 @@ class CreatePostView(LoginRequiredMixin, CreateView):
 
 
 class CommentUpdateView(CommentMixin, UpdateView):
-    def get_queryset(self):
-        return Comment.objects.filter(author=self.request.user)
+    pass
 
 
 class CommentDeleteView(CommentMixin, DeleteView):
-    def get_queryset(self):
-        return Comment.objects.filter(author=self.request.user)
+    pass
 
 
 class CategoryDetailView(ListView):

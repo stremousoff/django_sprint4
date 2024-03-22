@@ -41,3 +41,6 @@ class CommentMixin(LoginRequiredMixin):
     def get_success_url(self):
         return reverse('blog:post_detail',
                        kwargs={'post_id': self.kwargs['post_id']})
+
+    def get_queryset(self):
+        return Comment.objects.filter(author=self.request.user)
