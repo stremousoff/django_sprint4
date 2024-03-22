@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from .constants import LENGTH_STRING_ADMIN, NUMBER_OF_POSTS
@@ -17,6 +19,7 @@ class PostAdmin(admin.ModelAdmin):
         'pub_date',
         'is_published',
         'image_display',
+        'author_display',
     )
     list_editable = (
         'location',
@@ -31,7 +34,6 @@ class PostAdmin(admin.ModelAdmin):
     )
     list_per_page = NUMBER_OF_POSTS
 
-    @staticmethod
     @admin.display(description='Картинка')
     def image_display(self, obj):
         if obj.image:
@@ -44,6 +46,15 @@ class PostAdmin(admin.ModelAdmin):
     def text_short(obj: Post) -> str:
         """Укороченное описание поста для отображения в админке."""
         return f'{obj.text[:LENGTH_STRING_ADMIN]}...'
+
+    @admin.display(description='Автор')
+    def author_display(self, obj):
+        link = reverse(
+            'admin:auth_user_change', args=(obj.author.id,)
+        )
+        return format_html(
+            '<a href="{}">{}</a>', link, obj.author.get_full_name()
+        )
 
 
 @admin.register(Category)

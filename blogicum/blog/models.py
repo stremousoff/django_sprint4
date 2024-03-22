@@ -12,7 +12,7 @@ User = get_user_model()  # получение модели пользовате�
 class PublishedQuerySet(models.QuerySet):
     """Менеджер публикации."""
 
-    def filter_posts_for_users(self):
+    def filter_posts_for_publication(self):
         return self.select_related(
             'category',
             'location',
@@ -21,12 +21,11 @@ class PublishedQuerySet(models.QuerySet):
             pub_date__lte=timezone.now(),
             is_published=True,
             category__is_published=True,
-        ).annotate(comment_count=Count('comments')).order_by('-pub_date')
+        )
 
-    def filter_posts_for_author(self, author):
-        return self.select_related('category', 'location', 'author').filter(
-            author__username=author).annotate(comment_count=Count('comments')
-                                              ).order_by('-pub_date')
+    def count_comments(self):
+        return self.annotate(
+            comment_count=Count('comments')).order_by('-pub_date')
 
 
 class Category(CreatedAt, IsPublished):
