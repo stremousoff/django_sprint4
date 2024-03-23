@@ -1,26 +1,27 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView
 
 from .constants import NUMBER_OF_POSTS
 from .forms import CommentForm, PostForm
-from .mixins import PostMixin, CommentMixin
+from .mixins import PostMixin, CommentMixin, AuthorMixin
 from .models import Category, Comment, Post
 
 
 class IndexListView(ListView):
-    model = Post
     template_name = 'blog/index.html'
     paginate_by = NUMBER_OF_POSTS
     queryset = Post.objects.filter_posts_for_publication().count_comments()
 
 
 class PostDetailView(ListView):
-    model = Comment
     template_name = 'blog/detail.html'
     paginate_by = NUMBER_OF_POSTS
+
+    def get_queryset(self):
+        return Comment.objects.filter(post=self.kwargs['post_id'])
 
     def get_object(self):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
@@ -63,19 +64,19 @@ class CreatePostView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('blog:profile', kwargs={'username': self.request.user})
+        return reverse('blog:profile',
+                       kwargs={'username': self.request.user.username})
 
 
-class CommentUpdateView(CommentMixin, UpdateView):
+class CommentUpdateView(CommentMixin, AuthorMixin, UpdateView):
     pass
 
 
-class CommentDeleteView(CommentMixin, DeleteView):
+class CommentDeleteView(CommentMixin, AuthorMixin, DeleteView):
     pass
 
 
 class CategoryDetailView(ListView):
-    model = Post
     template_name = 'blog/category.html'
     paginate_by = NUMBER_OF_POSTS
     slug_url_kwarg = 'category_slug'
@@ -94,9 +95,9 @@ class CategoryDetailView(ListView):
 
 
 class ProfileView(ListView):
-    model = Post
     template_name = 'blog/profile.html'
     paginate_by = NUMBER_OF_POSTS
+    slug_url_kwarg = 'username'
 
     def get_profile(self):
         return get_object_or_404(User, username=self.kwargs['username'])
@@ -122,4 +123,4 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('blog:profile',
-                       kwargs={self.slug_url_kwarg: self.request.user})
+                       kwargs={'username': self.kwargs[self.slug_url_kwarg]})

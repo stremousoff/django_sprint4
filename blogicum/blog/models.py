@@ -13,19 +13,16 @@ class PublishedQuerySet(models.QuerySet):
     """Менеджер публикации."""
 
     def filter_posts_for_publication(self):
-        return self.select_related(
-            'category',
-            'location',
-            'author'
-        ).filter(
+        return self.filter(
             pub_date__lte=timezone.now(),
             is_published=True,
             category__is_published=True,
         )
 
     def count_comments(self):
-        return self.annotate(
-            comment_count=Count('comments')).order_by('-pub_date')
+        return self.select_related(
+            'category', 'location', 'author'
+        ).annotate(comment_count=Count('comments')).order_by('-pub_date')
 
 
 class Category(CreatedAt, IsPublished):
