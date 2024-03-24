@@ -35,8 +35,8 @@ class CommentMixin(LoginRequiredMixin):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment.html'
-    pk_url_kwarg = 'post_id'
+    pk_url_kwarg = 'comment_id'
 
     def get_success_url(self):
         return reverse('blog:post_detail',
-                       kwargs={'post_id': self.kwargs[self.pk_url_kwarg]})
+                       kwargs={'post_id': self.kwargs['post_id']})

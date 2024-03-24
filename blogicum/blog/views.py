@@ -7,7 +7,7 @@ from django.views.generic import CreateView, ListView, UpdateView, DeleteView
 from .constants import NUMBER_OF_POSTS
 from .forms import CommentForm, PostForm
 from .mixins import PostMixin, CommentMixin, AuthorMixin
-from .models import Category, Comment, Post
+from .models import Category, Post
 
 
 class IndexListView(ListView):
@@ -20,15 +20,15 @@ class PostDetailView(ListView):
     template_name = 'blog/detail.html'
     paginate_by = NUMBER_OF_POSTS
 
-    def get_queryset(self):
-        return Comment.objects.filter(post=self.kwargs['post_id'])
-
     def get_object(self):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         if self.request.user == post.author:
             return post
         return get_object_or_404(Post.objects.filter_posts_for_publication(),
                                  pk=self.kwargs['post_id'])
+
+    def get_queryset(self):
+        return self.get_object().comments.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -48,9 +48,7 @@ class PostDeleteView(PostMixin, DeleteView):
 class CommentCreateView(CommentMixin, CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.post = get_object_or_404(
-            Post, pk=self.kwargs[self.pk_url_kwarg]
-        )
+        form.instance.post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         return super().form_valid(form)
 
 
@@ -103,8 +101,9 @@ class ProfileView(ListView):
         return get_object_or_404(User, username=self.kwargs['username'])
 
     def get_queryset(self):
-        posts = self.get_profile().posts.count_comments()
-        if self.request.user.username == self.kwargs['username']:
+        author = self.get_profile()
+        posts = author.posts.count_comments()
+        if author.username == self.kwargs['username']:
             return posts
         return posts.filter_posts_for_publication()
 
@@ -115,11 +114,14 @@ class ProfileView(ListView):
 
 
 class ProfileEditView(LoginRequiredMixin, UpdateView):
-    model = User
     template_name = 'blog/user.html'
     fields = ('first_name', 'last_name', 'email')
     slug_url_kwarg = 'username'
     slug_field = 'username'
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(User,
+                                 username=self.kwargs[self.slug_url_kwarg])
 
     def get_success_url(self):
         return reverse('blog:profile',
