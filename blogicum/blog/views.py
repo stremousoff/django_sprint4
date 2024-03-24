@@ -106,7 +106,7 @@ class ProfileView(ListView):
     def get_queryset(self):
         author = self.get_profile()
         posts = author.posts.count_comments()
-        if author.username == self.request.user.username:
+        if author == self.request.user:
             return posts
         return posts.filter_posts_for_publication()
 
