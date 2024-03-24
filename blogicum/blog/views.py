@@ -48,7 +48,10 @@ class PostDeleteView(PostMixin, DeleteView):
 class CommentCreateView(CommentMixin, CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        form.instance.post = get_object_or_404(
+            Post.objects.filter_posts_for_publication(),
+            pk=self.kwargs['post_id']
+        )
         return super().form_valid(form)
 
 
