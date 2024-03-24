@@ -106,7 +106,7 @@ class ProfileView(ListView):
     def get_queryset(self):
         author = self.get_profile()
         posts = author.posts.count_comments()
-        if author.username == self.kwargs['username']:
+        if author.username == self.request.user.username:
             return posts
         return posts.filter_posts_for_publication()
 
@@ -123,8 +123,7 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
     slug_field = 'username'
 
     def get_object(self, queryset=None):
-        return get_object_or_404(User,
-                                 username=self.kwargs[self.slug_url_kwarg])
+        return self.request.user
 
     def get_success_url(self):
         return reverse('blog:profile',
