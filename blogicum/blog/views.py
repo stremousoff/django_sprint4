@@ -7,7 +7,7 @@ from django.views.generic import CreateView, ListView, UpdateView, DeleteView
 from .constants import NUMBER_OF_POSTS
 from .forms import CommentForm, PostForm
 from .mixins import PostMixin, CommentMixin, AuthorMixin
-from .models import Category, Post
+from .models import Category, Post, Comment
 
 
 class IndexListView(ListView):
@@ -98,7 +98,6 @@ class CategoryDetailView(ListView):
 class ProfileView(ListView):
     template_name = 'blog/profile.html'
     paginate_by = NUMBER_OF_POSTS
-    slug_url_kwarg = 'username'
 
     def get_profile(self):
         return get_object_or_404(User, username=self.kwargs['username'])
