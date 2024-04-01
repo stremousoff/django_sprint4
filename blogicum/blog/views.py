@@ -7,7 +7,7 @@ from django.views.generic import CreateView, ListView, UpdateView, DeleteView
 from .constants import NUMBER_OF_POSTS
 from .forms import CommentForm, PostForm
 from .mixins import PostMixin, CommentMixin, AuthorMixin
-from .models import Category, Post, Comment
+from .models import Category, Post
 
 
 class IndexListView(ListView):
